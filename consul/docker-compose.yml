@@ -1,0 +1,29 @@
+version: "2"
+
+services:
+  alpha1:
+    image: consul
+    command: "agent -server --bootstrap-expect=3 -client=0.0.0.0 -node=alpha1 -datacenter=alpha -retry-join=alpha2 -retry-join=alpha3"
+  alpha2:
+    image: consul
+    command: "agent -server --bootstrap-expect=3 -client=0.0.0.0 -node=alpha2 -datacenter=alpha -retry-join=alpha1 -retry-join=alpha3"
+  alpha3:
+    image: consul
+    command: "agent -server --bootstrap-expect=3 -client=0.0.0.0 -node=alpha3 -datacenter=alpha -retry-join=alpha1 -retry-join=alpha2"
+  beta1:
+    image: consul
+    command: "agent -server --bootstrap-expect=3 -client=0.0.0.0 -node=beta1 -datacenter=beta -retry-join=beta2 -retry-join=beta3"
+  beta2:
+    image: consul
+    command: "agent -server --bootstrap-expect=3 -client=0.0.0.0 -node=beta2 -datacenter=beta -retry-join=beta1 -retry-join=beta3"
+  beta3:
+    image: consul
+    command: "agent -server --bootstrap-expect=3 -client=0.0.0.0 -node=beta3 -datacenter=beta -retry-join=beta1 -retry-join=beta2"
+  gamma:
+    image: consul
+    command: "agent -server --bootstrap-expect=1 -client=0.0.0.0 -node=gamma -datacenter=gamma -retry-join-wan=alpha1 -retry-join-wan=alpha2 -retry-join-wan=alpha3 -retry-join-wan=beta1 -retry-join-wan=beta2 -retry-join-wan=beta3"
+    ports:
+      - "8500:8500"
+
+networks:
+  default:

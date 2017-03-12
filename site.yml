@@ -1,0 +1,104 @@
+---
+
+- hosts: localhost
+  connection: local
+  gather_facts: true
+
+  tasks:
+
+  - name: Create tmp directory
+    file:
+      path: "{{ playbook_dir }}/consul-template/tmp"
+      state: "{{ item }}"
+    with_items:
+      - absent
+      - directory
+
+  - name: Build consul-template image
+    docker_image:
+      path: ./consul-template
+      name: anthcourtney/consul-template
+
+  - name: Create consul datacenter clusters
+    docker_service:
+      project_src: consul
+      recreate: always
+      state: "{{ item }}"
+    with_items:
+      - absent
+      - present
+
+  - pause:
+      seconds: 30
+
+  - name: Run consul-template
+    docker_container:
+      name: "consul-template"
+      image: "anthcourtney/consul-template"
+      volumes:
+        - "{{ playbook_dir }}/consul-template/templates:/templates"
+        - "{{ playbook_dir }}/consul-template/tmp:/tmp"
+        - "{{ playbook_dir }}/consul-template/dc-has-cluster-leader.py:/bin/dc-has-cluster-leader.py"
+      command: "-consul-addr {{ ansible_docker0.ipv4.address }}:8500 -template /templates/test.cfg.ctmpl:/tmp/before.cfg -once"
+      state: "{{ item }}"
+      env:
+        CONSUL_ADDR: "{{ ansible_docker0.ipv4.address }}:8500"
+    with_items:
+      - absent
+      - started
+
+  - wait_for:
+      path: "consul-template/tmp/before.cfg"
+      timeout: 30
+
+  - name: Verify that generated template contains expected entries
+    assert:
+      that: "'{{ item }}' in '{{ lookup('file','consul-template/tmp/before.cfg') }}'"
+    with_items:
+      - "dc: alpha"
+      - "dc: beta"
+      - "dc: gamma"
+
+  - name: Stop beta2 and beta3 instances
+    docker_container:
+      name: "{{ item }}"
+      state: stopped
+    with_items:
+      - "consul_beta1_1"
+      - "consul_beta2_1"
+
+  - pause:
+      seconds: 30
+
+  - name: Run consul-template
+    docker_container:
+      name: "consul-template"
+      image: "anthcourtney/consul-template"
+      volumes:
+        - "{{ playbook_dir }}/consul-template/templates:/templates"
+        - "{{ playbook_dir }}/consul-template/tmp:/tmp"
+        - "{{ playbook_dir }}/consul-template/dc-has-cluster-leader.py:/bin/dc-has-cluster-leader.py"
+      command: "-consul-addr {{ ansible_docker0.ipv4.address }}:8500 -template /templates/test.cfg.ctmpl:/tmp/after.cfg -once"
+      state: "{{ item }}"
+      env:
+        CONSUL_ADDR: "{{ ansible_docker0.ipv4.address }}:8500"
+    with_items:
+      - absent
+      - started
+
+  - wait_for:
+      path: "consul-template/tmp/after.cfg"
+      timeout: 30
+    
+  - name: Verify that generated template contains expected entries
+    assert:
+      that: "'{{ item }}' in '{{ lookup('file','consul-template/tmp/after.cfg') }}'"
+    with_items:
+      - "dc: alpha"
+      - "dc: gamma"
+
+  - name: Verify that generated template doesn't contain certain entries
+    assert:
+      that: "'{{ item }}' not in '{{ lookup('file','consul-template/tmp/after.cfg') }}'"
+    with_items:
+      - "dc: beta"

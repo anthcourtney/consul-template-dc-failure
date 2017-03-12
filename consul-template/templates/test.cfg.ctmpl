@@ -1,0 +1,5 @@
+{{ range $dc := datacenters -}}
+{{ if plugin "dc-has-cluster-leader.py" $dc | parseBool -}}
+dc: {{ $dc }}
+{{- end -}}
+{{- end -}}

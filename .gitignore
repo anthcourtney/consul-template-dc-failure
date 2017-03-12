@@ -1,0 +1,2 @@
+*.retry
+consul-template/tmp
