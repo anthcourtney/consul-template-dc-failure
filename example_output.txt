@@ -1,0 +1,86 @@
+$ ansible-playbook site.yml 
+ [WARNING]: provided hosts list is empty, only localhost is available
+
+
+PLAY [localhost] ***************************************************************
+
+TASK [setup] *******************************************************************
+ok: [localhost]
+
+TASK [Create tmp directory] ****************************************************
+changed: [localhost] => (item=absent)
+changed: [localhost] => (item=directory)
+
+TASK [Build consul-template image] *********************************************
+ok: [localhost]
+
+TASK [Create consul datacenter clusters] ***************************************
+changed: [localhost] => (item=absent)
+changed: [localhost] => (item=present)
+
+TASK [pause] *******************************************************************
+Pausing for 30 seconds
+(ctrl+C then 'C' = continue early, ctrl+C then 'A' = abort)
+ok: [localhost]
+
+TASK [Run consul-template] *****************************************************
+changed: [localhost] => (item=absent)
+changed: [localhost] => (item=started)
+
+TASK [wait_for] ****************************************************************
+ok: [localhost]
+
+TASK [Verify that generated template contains expected entries] ****************
+ok: [localhost] => (item=dc: alpha) => {
+    "changed": false, 
+    "item": "dc: alpha", 
+    "msg": "All assertions passed"
+}
+ok: [localhost] => (item=dc: beta) => {
+    "changed": false, 
+    "item": "dc: beta", 
+    "msg": "All assertions passed"
+}
+ok: [localhost] => (item=dc: gamma) => {
+    "changed": false, 
+    "item": "dc: gamma", 
+    "msg": "All assertions passed"
+}
+
+TASK [Stop beta2 and beta3 instances] ******************************************
+changed: [localhost] => (item=consul_beta1_1)
+changed: [localhost] => (item=consul_beta2_1)
+
+TASK [pause] *******************************************************************
+Pausing for 30 seconds
+(ctrl+C then 'C' = continue early, ctrl+C then 'A' = abort)
+ok: [localhost]
+
+TASK [Run consul-template] *****************************************************
+changed: [localhost] => (item=absent)
+changed: [localhost] => (item=started)
+
+TASK [wait_for] ****************************************************************
+ok: [localhost]
+
+TASK [Verify that generated template contains expected entries] ****************
+ok: [localhost] => (item=dc: alpha) => {
+    "changed": false, 
+    "item": "dc: alpha", 
+    "msg": "All assertions passed"
+}
+ok: [localhost] => (item=dc: gamma) => {
+    "changed": false, 
+    "item": "dc: gamma", 
+    "msg": "All assertions passed"
+}
+
+TASK [Verify that generated template doesn't contain certain entries] **********
+ok: [localhost] => (item=dc: beta) => {
+    "changed": false, 
+    "item": "dc: beta", 
+    "msg": "All assertions passed"
+}
+
+PLAY RECAP *********************************************************************
+localhost                  : ok=14   changed=5    unreachable=0    failed=0  
