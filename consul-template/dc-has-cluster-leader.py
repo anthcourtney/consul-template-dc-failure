@@ -6,7 +6,7 @@ import requests
 if len(sys.argv) > 1 and "CONSUL_ADDR" in os.environ:
   dc = sys.argv[1]
   # query consul
-  r = requests.get( "http://" + os.environ['CONSUL_ADDR'] + "/v1/catalog/services", params={ 'dc': dc }, timeout=5)
+  r = requests.get( "http://" + os.environ['CONSUL_ADDR'] + "/v1/catalog/services", params={ 'dc': dc })
   if r.status_code == requests.codes.ok:
     print "true"
   else:
