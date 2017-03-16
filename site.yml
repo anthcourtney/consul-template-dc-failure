@@ -39,6 +39,7 @@
         - "{{ playbook_dir }}/consul-template/templates:/templates"
         - "{{ playbook_dir }}/consul-template/tmp:/tmp"
         - "{{ playbook_dir }}/consul-template/dc-has-cluster-leader.py:/bin/dc-has-cluster-leader.py"
+        - "{{ playbook_dir }}/consul-template/dc-has-leader:/bin/dc-has-leader"
       command: "-consul-addr {{ ansible_docker0.ipv4.address }}:8500 -template /templates/test.cfg.ctmpl:/tmp/before.cfg -once"
       state: "{{ item }}"
       env:
@@ -78,6 +79,7 @@
         - "{{ playbook_dir }}/consul-template/templates:/templates"
         - "{{ playbook_dir }}/consul-template/tmp:/tmp"
         - "{{ playbook_dir }}/consul-template/dc-has-cluster-leader.py:/bin/dc-has-cluster-leader.py"
+        - "{{ playbook_dir }}/consul-template/dc-has-leader:/bin/dc-has-leader"
       command: "-consul-addr {{ ansible_docker0.ipv4.address }}:8500 -template /templates/test.cfg.ctmpl:/tmp/after.cfg -once"
       state: "{{ item }}"
       env:
